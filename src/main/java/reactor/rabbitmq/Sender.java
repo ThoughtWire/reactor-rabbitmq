@@ -16,21 +16,6 @@
 
 package reactor.rabbitmq;
 
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.ConfirmListener;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.impl.AMQImpl;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import reactor.core.CoreSubscriber;
-import reactor.core.publisher.*;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
-
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,6 +30,27 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConfirmListener;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.impl.AMQImpl;
+
+import reactor.core.CoreSubscriber;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxOperator;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Operators;
+import reactor.core.publisher.SignalType;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Reactive abstraction to create resources and send messages.
@@ -243,6 +249,7 @@ public class Sender implements AutoCloseable {
                 .durable(false)
                 .exclusive(true)
                 .autoDelete(true)
+                .passive(false)
                 .arguments(specification.getArguments())
                 .build();
         } else {
@@ -251,6 +258,7 @@ public class Sender implements AutoCloseable {
                 .durable(specification.isDurable())
                 .exclusive(specification.isExclusive())
                 .autoDelete(specification.isAutoDelete())
+                .passive(specification.isPassive())
                 .arguments(specification.getArguments())
                 .build();
         }

@@ -16,13 +16,17 @@
 
 package reactor.rabbitmq;
 
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 class QueueSpecificationTest {
 
@@ -88,17 +92,42 @@ class QueueSpecificationTest {
         }
 
         @Test
+        void nullNameShouldReturnANonPassiveQueue() {
+            assertFalse(QueueSpecification.queue().isPassive());
+        }
+
+        @Test
+        void passingNullNameShouldReturnANonPassiveQueue() {
+            assertFalse(QueueSpecification.queue(null).isPassive());
+        }
+
+        @Test
+        void nullNameShouldNotAbleToConfigurePassiveToTrue() {
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> QueueSpecification.queue().passive(true),
+                    "Once a queue has a null name, passive is always false");
+        }
+
+        @Test
+        void nullNameShouldKeepDurableWhenConfigurePassiveToFalse() {
+            assertFalse(QueueSpecification.queue().passive(false).isDurable());
+        }
+
+        @Test
         void passingANonNullNameAfterShouldReturnAConfigurableQueueSpecification() {
             QueueSpecification queueSpecification = QueueSpecification.queue()
                     .name("not-null-anymore")
                     .durable(true)
                     .exclusive(false)
-                    .autoDelete(false);
+                    .autoDelete(false)
+                    .passive(true);
 
             assertEquals(queueSpecification.getName(), "not-null-anymore");
             assertTrue(queueSpecification.isDurable());
             assertFalse(queueSpecification.isAutoDelete());
             assertFalse(queueSpecification.isExclusive());
+            assertTrue(queueSpecification.isPassive());
         }
     }
 
@@ -109,26 +138,30 @@ class QueueSpecificationTest {
             QueueSpecification queueSpecification = QueueSpecification.queue("my-queue")
                     .durable(false)
                     .autoDelete(false)
-                    .exclusive(false);
+                    .exclusive(false)
+                    .passive(false);
 
             assertEquals(queueSpecification.getName(), "my-queue");
             assertFalse(queueSpecification.isDurable());
             assertFalse(queueSpecification.isAutoDelete());
             assertFalse(queueSpecification.isExclusive());
+            assertFalse(queueSpecification.isPassive());
             assertNull(queueSpecification.getArguments());
         }
 
         @Test
         void queueSpecificationShouldReturnCorrespondingPropertiesWhenEmptyName() {
             QueueSpecification queueSpecification = QueueSpecification.queue("")
-                    .durable(false)
+            		.durable(false)
                     .autoDelete(false)
-                    .exclusive(false);
+                    .exclusive(false)
+                    .passive(false);
 
             assertEquals(queueSpecification.getName(), "");
             assertFalse(queueSpecification.isDurable());
             assertFalse(queueSpecification.isAutoDelete());
             assertFalse(queueSpecification.isExclusive());
+            assertFalse(queueSpecification.isPassive());
             assertNull(queueSpecification.getArguments());
         }
 
@@ -141,6 +174,7 @@ class QueueSpecificationTest {
             assertFalse(queueSpecification.isDurable());
             assertTrue(queueSpecification.isAutoDelete());
             assertTrue(queueSpecification.isExclusive());
+            assertFalse(queueSpecification.isPassive());
             assertThat(queueSpecification.getArguments()).isNotNull().hasSize(1).containsKeys("x-max-length");
         }
     }
