@@ -152,7 +152,7 @@ class QueueSpecificationTest {
         @Test
         void queueSpecificationShouldReturnCorrespondingPropertiesWhenEmptyName() {
             QueueSpecification queueSpecification = QueueSpecification.queue("")
-            		.durable(false)
+                    .durable(false)
                     .autoDelete(false)
                     .exclusive(false)
                     .passive(false);
